@@ -1,0 +1,19 @@
+{
+    "name": "exceed-attendance",
+    "version": "1.0.0",
+    "description": "Standalone check-in/check-out system for Exceed Project Management",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js",
+        "dev": "node server.js"
+    },
+    "engines": {
+        "node": ">=18"
+    },
+    "keywords": [
+        "attendance",
+        "checkin",
+        "exceed"
+    ],
+    "license": "MIT"
+}

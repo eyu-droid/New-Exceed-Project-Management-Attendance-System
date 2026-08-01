@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Exceed Attendance — Dashboard</title>
+    <meta name="description" content="Check in and check out of work using the Exceed Attendance system." />
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <div class="bg-glow"></div>
+
+    <!-- Loading overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner-large"></div>
+    </div>
+
+    <main class="page">
+        <div class="dashboard-wrapper">
+
+            <!-- Header -->
+            <div class="card dashboard-header">
+                <div class="header-brand">
+                    <div class="header-icon">⏱</div>
+                    <div>
+                        <h2>Exceed Attendance</h2>
+                        <span id="headerDate">Loading…</span>
+                    </div>
+                </div>
+                <button class="btn btn-logout" id="logoutBtn">Sign Out</button>
+            </div>
+
+            <!-- User + Clock -->
+            <div class="card user-card">
+                <div class="user-info">
+                    <div class="avatar" id="avatarInitial">?</div>
+                    <div class="user-details">
+                        <h3 id="userName">Loading…</h3>
+                        <p id="userRole">Exceed Project Management</p>
+                    </div>
+                </div>
+                <div class="clock-row">
+                    <div class="clock-time" id="clockTime">00:00:00</div>
+                    <div class="clock-date" id="clockDate">—</div>
+                </div>
+            </div>
+
+            <!-- Status -->
+            <div class="card status-card">
+                <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+                    <div>
+                        <div class="status-badge not-started" id="statusBadge">
+                            <div class="status-dot"></div>
+                            <span id="statusText">Not Started</span>
+                        </div>
+                        <p class="status-label" id="statusLabel">Loading today's status…</p>
+                    </div>
+                </div>
+
+                <div class="time-record" id="timeRecord" style="display:none;">
+                    <div class="time-item">
+                        <div class="time-item-label">Check-in</div>
+                        <div class="time-item-value" id="checkinTime">—</div>
+                    </div>
+                    <div class="time-item">
+                        <div class="time-item-label">Check-out</div>
+                        <div class="time-item-value" id="checkoutTime">—</div>
+                    </div>
+                </div>
+
+                <!-- Already checked in bypass -->
+                <div id="alreadyCheckedInBar" style="display:none; margin-top:14px;">
+                    <div class="alert alert-info">
+                        <span>ℹ️</span>
+                        <span>Checked in via the main system?</span>
+                        <button class="btn btn-bypass" id="bypassBtn">Enable Check Out</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Check-in Form (shown only when not checked in) -->
+            <div class="card action-card" id="checkinFormCard">
+                <h4>Check In</h4>
+
+                <div class="form-group">
+                    <label class="form-label" for="attendanceType">Attendance Type *</label>
+                    <select class="form-input form-select" id="attendanceType">
+                        <option value="">Select type…</option>
+                        <option value="Project Site">Project Site</option>
+                        <option value="Office">Office</option>
+                        <option value="Remote">Remote</option>
+                        <option value="Field">Field</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="projectGroup">
+                    <label class="form-label" for="projectSelect">Project *</label>
+                    <select class="form-input form-select" id="projectSelect">
+                        <option value="">Loading projects…</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="notesInput">Notes (Optional)</label>
+                    <textarea class="form-input form-textarea" id="notesInput" rows="2"
+                        placeholder="Add any additional notes…"></textarea>
+                </div>
+
+                <div class="location-bar" id="locationBar">
+                    <div class="location-dot" id="locationDot"></div>
+                    <span id="locationText">Requesting location…</span>
+                </div>
+
+                <button class="btn btn-checkin" id="checkinBtn" style="width:100%; margin-top:14px;">
+                    ✅ Check In
+                </button>
+
+                <div id="checkinMessage"></div>
+            </div>
+
+            <!-- Check-out Card (shown only when checked in) -->
+            <div class="card action-card" id="checkoutFormCard" style="display:none;">
+                <h4>Check Out</h4>
+
+                <div class="form-group">
+                    <label class="form-label" for="checkoutNotes">Notes (Optional)</label>
+                    <textarea class="form-input form-textarea" id="checkoutNotes" rows="2"
+                        placeholder="End of day notes…"></textarea>
+                </div>
+
+                <div class="location-bar" id="locationBar2">
+                    <div class="location-dot" id="locationDot2"></div>
+                    <span id="locationText2">Location ready</span>
+                </div>
+
+                <button class="btn btn-checkout" id="checkoutBtn" style="width:100%; margin-top:14px;">
+                    🚪 Check Out
+                </button>
+
+                <div id="checkoutMessage"></div>
+            </div>
+
+            <!-- History -->
+            <div class="card history-card">
+                <h4>Recent Attendance</h4>
+                <div class="history-list" id="historyList">
+                    <div class="history-empty">Loading attendance history…</div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script type="module" src="app.js"></script>
+</body>
+
+</html>

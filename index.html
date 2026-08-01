@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exceed Attendance — Sign In</title>
+  <meta name="description" content="Sign in to access the Exceed attendance check-in system." />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="bg-glow"></div>
+
+  <main class="page" id="app">
+    <div class="card login-card">
+      <div class="login-logo">
+        <div class="login-logo-icon">⏱</div>
+        <h1>Exceed Attendance</h1>
+        <p>Sign in to check in or out</p>
+      </div>
+
+      <form id="loginForm" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="username">Username</label>
+          <input
+            class="form-input"
+            type="text"
+            id="username"
+            name="username"
+            placeholder="Enter your username"
+            autocomplete="username"
+            autocapitalize="off"
+            spellcheck="false"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input
+            class="form-input"
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Enter your password"
+            autocomplete="current-password"
+            required
+          />
+        </div>
+
+        <button class="btn btn-primary" type="submit" id="loginBtn">
+          Sign In
+        </button>
+
+        <div id="loginMessage"></div>
+      </form>
+    </div>
+  </main>
+
+  <script type="module">
+    import { login, isLoggedIn } from './api.js';
+
+    // Already logged in → go to dashboard
+    if (isLoggedIn()) {
+      window.location.href = 'dashboard.html';
+    }
+
+    const form    = document.getElementById('loginForm');
+    const btn     = document.getElementById('loginBtn');
+    const msgBox  = document.getElementById('loginMessage');
+
+    function showMsg(text, type = 'error') {
+      msgBox.innerHTML = `<div class="alert alert-${type}">
+        <span>${type === 'error' ? '⚠️' : '✅'}</span> ${text}
+      </div>`;
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!username || !password) {
+        showMsg('Please enter your username and password.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Signing in…';
+      msgBox.innerHTML = '';
+
+      try {
+        await login(username, password);
+        showMsg('Login successful! Redirecting…', 'success');
+        setTimeout(() => { window.location.href = 'dashboard.html'; }, 600);
+      } catch (err) {
+        showMsg(err.message || 'Login failed. Please try again.');
+        btn.disabled = false;
+        btn.innerHTML = 'Sign In';
+      }
+    });
+  </script>
+</body>
+</html>

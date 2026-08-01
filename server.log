@@ -1,0 +1,36 @@
+[2026-08-01T10:57:23.744Z]    Open: http://localhost:3003
+[2026-08-01T10:57:23.415Z] ✅ Exceed Attendance running on port 3003
+[2026-08-01T10:57:23.744Z]    Debug: http://localhost:3003/debug
+[2026-08-01T10:57:23.744Z]    Log file: /home/eyoba/Desktop/Exceed Project Management/server.log
+[2026-08-01T10:57:44.053Z] PROXY POST /api/auth/login → 196.190.220.196:3002/api/auth/login
+[2026-08-01T10:57:45.210Z] PROXY RESPONSE 200 for /api/auth/login
+[2026-08-01T10:57:46.610Z] PROXY GET /api/users/me → 196.190.220.196:3002/api/users/me
+[2026-08-01T10:57:46.614Z] PROXY GET /api/attendance → 196.190.220.196:3002/api/attendance
+[2026-08-01T10:57:46.618Z] PROXY GET /api/projects → 196.190.220.196:3002/api/projects
+[2026-08-01T10:57:46.705Z] PROXY RESPONSE 200 for /api/attendance
+[2026-08-01T10:57:46.707Z] PROXY WARNING: Got HTML back for /api/attendance — endpoint may not exist
+[2026-08-01T10:57:47.225Z] PROXY RESPONSE 200 for /api/users/me
+[2026-08-01T10:57:47.227Z] PROXY RESPONSE 200 for /api/projects
+[2026-08-01T10:57:57.380Z] PROXY POST /api/attendance/checkout → 196.190.220.196:3002/api/attendance/checkout
+[2026-08-01T10:57:57.406Z] PROXY RESPONSE 404 for /api/attendance/checkout
+[2026-08-01T10:57:57.408Z] PROXY WARNING: Got HTML back for /api/attendance/checkout — endpoint may not exist
+[2026-08-01T11:05:04.745Z] ✅ Exceed Attendance running on port 3003
+[2026-08-01T11:05:05.322Z]    Open: http://localhost:3003
+[2026-08-01T11:05:05.322Z]    Debug: http://localhost:3003/debug
+[2026-08-01T11:05:05.323Z]    Log file: /home/eyoba/Desktop/Exceed Project Management/server.log
+[2026-08-01T11:05:34.695Z] PROXY POST /api/auth/login → 196.190.220.196:3002/api/auth/login
+[2026-08-01T11:05:35.409Z] PROXY RESPONSE 200 for /api/auth/login
+[2026-08-01T11:05:36.372Z] PROXY GET /api/attendance → 196.190.220.196:3002/api/attendance
+[2026-08-01T11:05:36.377Z] PROXY GET /api/users/me → 196.190.220.196:3002/api/users/me
+[2026-08-01T11:05:36.455Z] PROXY RESPONSE 200 for /api/attendance
+[2026-08-01T11:05:36.467Z] PROXY WARNING: Got HTML back for /api/attendance — endpoint may not exist
+[2026-08-01T11:05:36.504Z] PROXY RESPONSE 200 for /api/users/me
+[2026-08-01T11:05:36.600Z] PROXY GET /api/projects → 196.190.220.196:3002/api/projects
+[2026-08-01T11:05:36.684Z] PROXY RESPONSE 200 for /api/projects
+[2026-08-01T11:08:48.115Z] PROXY GET /api/attendance → 196.190.220.196:3002/api/attendance
+[2026-08-01T11:08:48.154Z] PROXY GET /api/users/me → 196.190.220.196:3002/api/users/me
+[2026-08-01T11:08:48.162Z] PROXY RESPONSE 200 for /api/attendance
+[2026-08-01T11:08:48.164Z] PROXY WARNING: Got HTML back for /api/attendance — endpoint may not exist
+[2026-08-01T11:08:48.185Z] PROXY GET /api/projects → 196.190.220.196:3002/api/projects
+[2026-08-01T11:08:48.210Z] PROXY RESPONSE 200 for /api/users/me
+[2026-08-01T11:08:48.233Z] PROXY RESPONSE 200 for /api/projects
