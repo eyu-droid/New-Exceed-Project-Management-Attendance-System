@@ -1,5 +1,12 @@
 /**
  * Exceed Attendance — Server with API Proxy + File Logging
+ *
+ * Modified to implement local /api/attendance checkin/checkout handlers that
+ * store attendance records to a local JSON file (data/attendance.json).
+ * If an Authorization header (Bearer token) is present we will try to
+ * resolve the current user by calling the upstream /api/users/me endpoint
+ * and use the returned id for per-user records. This allows the front-end
+ * to keep using the same token while attendance is stored locally.
  */
 
 const http = require('http');
@@ -12,6 +19,8 @@ const EXCEED_HOST = '196.190.220.196';
 const EXCEED_PORT = 3002;
 const ROOT = __dirname;
 const LOG_FILE = path.join(ROOT, 'server.log');
+const DATA_DIR = path.join(ROOT, 'data');
+const ATT_FILE = path.join(DATA_DIR, 'attendance.json');
 
 const MIME = {
     '.html': 'text/html; charset=utf-8',
@@ -43,7 +52,158 @@ const CORS_HEADERS = {
 };
 
 // ──────────────────────────────────────────
-// API Proxy
+// Simple file-backed attendance store helpers
+// ──────────────────────────────────────────
+function ensureDataDir() {
+    if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR);
+    if (!fs.existsSync(ATT_FILE)) fs.writeFileSync(ATT_FILE, '[]');
+}
+
+function readAttendance() {
+    ensureDataDir();
+    try {
+        const raw = fs.readFileSync(ATT_FILE, 'utf8');
+        return JSON.parse(raw || '[]');
+    } catch (e) {
+        log('ERROR reading attendance file:', e.message);
+        return [];
+    }
+}
+
+function writeAttendance(records) {
+    ensureDataDir();
+    try {
+        fs.writeFileSync(ATT_FILE, JSON.stringify(records, null, 2));
+    } catch (e) {
+        log('ERROR writing attendance file:', e.message);
+    }
+}
+
+// Helper: fetch upstream /api/users/me to determine user identity (if token present)
+function fetchUpstreamUser(authHeader) {
+    return new Promise((resolve) => {
+        if (!authHeader) return resolve(null);
+        const headers = { 'Content-Type': 'application/json', 'host': `${EXCEED_HOST}:${EXCEED_PORT}` };
+        headers['Authorization'] = authHeader;
+
+        const req = http.request({ hostname: EXCEED_HOST, port: EXCEED_PORT, path: '/api/users/me', method: 'GET', headers }, (r) => {
+            let raw = '';
+            r.on('data', d => raw += d);
+            r.on('end', () => {
+                try {
+                    const json = JSON.parse(raw);
+                    // Common shapes: { user: {...} } or direct user object
+                    const user = json.user || json;
+                    const id = user && (user._id || user.id || user.userId || user.id_user || user.uuid);
+                    resolve({ id, user });
+                } catch (e) {
+                    resolve(null);
+                }
+            });
+        });
+        req.on('error', () => resolve(null));
+        req.end();
+    });
+}
+
+// ──────────────────────────────────────────
+// Local handlers for attendance API
+// ──────────────────────────────────────────
+async function handleLocalAttendance(req, res) {
+    // Collect body
+    let bodyChunks = [];
+    req.on('data', c => bodyChunks.push(c));
+    req.on('end', async () => {
+        const bodyBuffer = Buffer.concat(bodyChunks);
+        let body = {};
+        if (bodyBuffer.length) {
+            try { body = JSON.parse(bodyBuffer.toString()); } catch { body = {}; }
+        }
+
+        const auth = req.headers['authorization'] || '';
+        const upstreamUser = await fetchUpstreamUser(auth);
+        const userId = upstreamUser?.id || body.userId || body.user_id || 'anonymous';
+        const userObj = upstreamUser?.user || { id: userId };
+
+        const records = readAttendance();
+        const now = new Date();
+
+        // Helpers to compare dates (same day)
+        function sameDay(a, b) {
+            const da = new Date(a); const db = new Date(b);
+            return da.getFullYear() === db.getFullYear() && da.getMonth() === db.getMonth() && da.getDate() === db.getDate();
+        }
+
+        // Routes
+        if (req.method === 'GET' && req.url === '/api/attendance') {
+            // If authenticated return this user's records; otherwise return all
+            const userRecords = userId && userId !== 'anonymous' ? records.filter(r => r.userId === userId) : records;
+            res.writeHead(200, { 'Content-Type': 'application/json', ...CORS_HEADERS });
+            res.end(JSON.stringify(userRecords));
+            return;
+        }
+
+        if (req.method === 'POST' && req.url === '/api/attendance/checkin') {
+            // Prevent duplicate check-in for the same day for same user
+            const existing = records.find(r => r.userId === userId && sameDay(r.checkInTime, now) && !r.deleted);
+            if (existing && !existing.checkOutTime) {
+                res.writeHead(409, { 'Content-Type': 'application/json', ...CORS_HEADERS });
+                res.end(JSON.stringify({ success: false, message: 'Already checked in today', attendance: existing }));
+                return;
+            }
+
+            const newRec = {
+                id: Date.now().toString(36) + Math.random().toString(36).slice(2,8),
+                userId: userId,
+                user: { ...userObj },
+                projectId: body.projectId || null,
+                attendanceType: body.attendanceType || null,
+                notes: body.notes || body.note || null,
+                checkInTime: now.toISOString(),
+                checkInLocation: (body.latitude != null && body.longitude != null) ? { lat: body.latitude, lng: body.longitude, address: body.address || null } : null,
+                checkOutTime: null,
+                checkOutLocation: null,
+                checkoutType: null,
+                durationMinutes: null,
+                createdAt: now.toISOString()
+            };
+            records.push(newRec);
+            writeAttendance(records);
+            res.writeHead(200, { 'Content-Type': 'application/json', ...CORS_HEADERS });
+            res.end(JSON.stringify({ success: true, message: 'Checked in', attendance: newRec }));
+            log(`LOCAL CHECKIN for user=${userId}`);
+            return;
+        }
+
+        if (req.method === 'POST' && req.url === '/api/attendance/checkout') {
+            // Find latest record for today for user without checkout
+            const candidate = [...records].reverse().find(r => r.userId === userId && !r.checkOutTime && sameDay(r.checkInTime, now));
+            if (!candidate) {
+                res.writeHead(404, { 'Content-Type': 'application/json', ...CORS_HEADERS });
+                res.end(JSON.stringify({ success: false, message: 'No active check-in found for today' }));
+                return;
+            }
+            candidate.checkOutTime = now.toISOString();
+            candidate.checkOutLocation = (body.latitude != null && body.longitude != null) ? { lat: body.latitude, lng: body.longitude, address: body.address || null } : null;
+            candidate.checkoutType = body.checkoutType || 'Manual';
+            candidate.durationMinutes = Math.round((new Date(candidate.checkOutTime) - new Date(candidate.checkInTime)) / 60000);
+            candidate.updatedAt = now.toISOString();
+
+            writeAttendance(records);
+            res.writeHead(200, { 'Content-Type': 'application/json', ...CORS_HEADERS });
+            res.end(JSON.stringify({ success: true, message: 'Checked out', attendance: candidate }));
+            log(`LOCAL CHECKOUT for user=${userId} id=${candidate.id}`);
+            return;
+        }
+
+        // If we got here, not a local attendance path
+        res.writeHead(404, { 'Content-Type': 'application/json', ...CORS_HEADERS });
+        res.end(JSON.stringify({ success: false, message: 'Local attendance handler: path not found' }));
+    });
+}
+
+// ──────────────────────────────────────────
+// API Proxy (unchanged)
 // ──────────────────────────────────────────
 function proxyRequest(req, res) {
     // Collect the request body first (important for POST)
@@ -218,6 +378,9 @@ const server = http.createServer((req, res) => {
 
     if (req.url.startsWith('/debug')) {
         handleDebug(req, res);
+    } else if (req.url.startsWith('/api/attendance')) {
+        // Handle attendance locally (checkin/checkout/history)
+        handleLocalAttendance(req, res);
     } else if (req.url.startsWith('/api/')) {
         proxyRequest(req, res);
     } else {
