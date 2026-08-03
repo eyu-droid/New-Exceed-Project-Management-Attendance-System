@@ -34,3 +34,19 @@
 [2026-08-01T11:08:48.185Z] PROXY GET /api/projects → 196.190.220.196:3002/api/projects
 [2026-08-01T11:08:48.210Z] PROXY RESPONSE 200 for /api/users/me
 [2026-08-01T11:08:48.233Z] PROXY RESPONSE 200 for /api/projects
+[2026-08-01T12:16:15.370Z] ✅ Exceed Attendance running on port 3003
+[2026-08-01T12:16:15.398Z]    Open: http://localhost:3003
+[2026-08-01T12:16:15.398Z]    Debug: http://localhost:3003/debug
+[2026-08-01T12:16:15.398Z]    Log file: /home/eyoba/Desktop/Exceed Project Management/server.log
+[2026-08-01T12:16:43.032Z] PROXY POST /api/auth/login → 196.190.220.196:3002/api/auth/login
+[2026-08-01T12:16:43.239Z] PROXY RESPONSE 200 for /api/auth/login
+[2026-08-01T12:16:44.209Z] PROXY GET /api/users/me → 196.190.220.196:3002/api/users/me
+[2026-08-01T12:16:44.212Z] PROXY GET /api/attendance → 196.190.220.196:3002/api/attendance
+[2026-08-01T12:16:44.214Z] PROXY GET /api/projects → 196.190.220.196:3002/api/projects
+[2026-08-01T12:16:44.323Z] PROXY RESPONSE 200 for /api/attendance
+[2026-08-01T12:16:44.323Z] PROXY WARNING: Got HTML back for /api/attendance — endpoint may not exist
+[2026-08-01T12:16:44.412Z] PROXY RESPONSE 200 for /api/users/me
+[2026-08-01T12:16:44.413Z] PROXY RESPONSE 200 for /api/projects
+[2026-08-01T12:17:00.541Z] PROXY POST /api/attendance/checkout → 196.190.220.196:3002/api/attendance/checkout
+[2026-08-01T12:17:00.569Z] PROXY RESPONSE 404 for /api/attendance/checkout
+[2026-08-01T12:17:00.570Z] PROXY WARNING: Got HTML back for /api/attendance/checkout — endpoint may not exist

@@ -379,8 +379,9 @@ const server = http.createServer((req, res) => {
     if (req.url.startsWith('/debug')) {
         handleDebug(req, res);
     } else if (req.url.startsWith('/api/attendance')) {
-        // Handle attendance locally (checkin/checkout/history)
-        handleLocalAttendance(req, res);
+        // route attendance requests to DB-backed handler
+        const attendance = require('./attendance-db');
+        attendance.handle(req, res);
     } else if (req.url.startsWith('/api/')) {
         proxyRequest(req, res);
     } else {
